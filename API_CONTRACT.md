@@ -2,8 +2,11 @@
 
 All monetary amounts are **integers in cents** (e.g. $150.25 = 15025).  
 Percentage returns are **basis points** (e.g. 1.50% = 150 bps).  
-All mutating endpoints require `Idempotency-Key: <uuid>` header.  
-Auth: `Authorization: Bearer <jwt>` on all endpoints.
+All mutating endpoints require `Idempotency-Key: <uuid>` header.
+
+> **Auth**: Authentication is **disabled in development**. All endpoints are open.  
+> To enable JWT auth in production, add `@UseGuards(JwtAuthGuard)` to each controller  
+> and set the `JWT_SECRET` environment variable.
 
 ---
 
@@ -32,7 +35,7 @@ Auth: `Authorization: Bearer <jwt>` on all endpoints.
 
 | Method | Path | Description | Response |
 |--------|------|-------------|----------|
-| `GET` | `/portfolios/:id/pnl/unrealized` | Unrealized P&L (live prices) | `PnLSummary` |
+| `GET` | `/portfolios/:id/pnl/unrealized` | Unrealized P&L (from price snapshots) | `PnLSummary` |
 | `GET` | `/portfolios/:id/pnl/realized` | Realized P&L (date range) | `PnLSummary` |
 
 #### Realized P&L query params
@@ -75,7 +78,7 @@ Auth: `Authorization: Bearer <jwt>` on all endpoints.
 
 ---
 
-## Service Method Signatures (for UI→Backend contract)
+## Service Method Signatures
 
 ```typescript
 // PortfolioService
@@ -119,3 +122,14 @@ PnLSummary { portfolioId, marketValueCents, costBasisCents, unrealizedPnlCents,
              unrealizedPnlBps, realizedPnlCents, dayChangeCents, dayChangeBps, calculatedAt }
 CostBasis  { positionId, symbol, totalSharesHeld, totalCostCents, avgCostPerShareCents, openLots }
 ```
+
+---
+
+## Sample Portfolio IDs (seed data)
+
+| Portfolio | ID |
+|-----------|----|
+| Tech Growth | `portfolio-tech-growth` |
+| ETF Core | `portfolio-etf-core` |
+
+Example: `GET http://localhost:3001/portfolios/portfolio-tech-growth/positions`

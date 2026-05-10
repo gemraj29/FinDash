@@ -6,6 +6,40 @@ Built on the **fintech** CodeDNA archetype: NestJS + PostgreSQL + Redis + Kafka 
 
 ---
 
+## ▶ Quick Start (One Click)
+
+**Double-click `FinDash.command`** in Finder — it handles everything:
+
+1. Starts Docker Desktop if not open
+2. Spins up PostgreSQL, Redis, Kafka
+3. Builds shared TypeScript types
+4. Runs database migrations
+5. Seeds sample portfolio data (first run only)
+6. Clears build cache, compiles API
+7. Starts API (port 3001) + Web (port 3000)
+8. Opens `http://localhost:3000` in your browser automatically
+
+> **Prerequisite**: [Docker Desktop](https://www.docker.com/products/docker-desktop/) and Node.js 20+ must be installed.
+
+---
+
+## Command-Line Start (Advanced)
+
+```bash
+git clone https://github.com/gemraj29/FinDash.git
+cd findash
+cp .env.example .env
+yarn install
+yarn dev:start          # full startup sequence
+```
+
+To load sample data after first start:
+```bash
+yarn db:seed
+```
+
+---
+
 ## Features
 
 - **Real-time P&L** — unrealized and realized gain/loss updated live via WebSocket
@@ -18,40 +52,32 @@ Built on the **fintech** CodeDNA archetype: NestJS + PostgreSQL + Redis + Kafka 
 
 ---
 
-## Quick Start
+## Project Structure
 
-### 1. Prerequisites
-
-- Node.js 20+, Yarn 1.22+
-- Docker & Docker Compose
-
-### 2. Clone and install
-
-```bash
-git clone <repo>
-cd findash
-cp .env.example .env
-yarn install
 ```
-
-### 3. Start infrastructure
-
-```bash
-yarn docker:up   # starts PostgreSQL, Redis, Kafka, Zookeeper
-```
-
-### 4. Run database migrations
-
-```bash
-yarn db:migrate
-```
-
-### 5. Start dev servers
-
-```bash
-yarn dev
-# API:  http://localhost:3001
-# Web:  http://localhost:3000
+findash/
+├── FinDash.command          ← Double-click to launch everything
+├── apps/
+│   ├── api/                 # NestJS backend (port 3001)
+│   │   ├── prisma/          # Schema, migrations, seed data
+│   │   └── src/
+│   │       ├── common/      # PrismaService, RedisService, auth, middleware
+│   │       └── modules/
+│   │           ├── portfolio/   # Portfolio CRUD + trade recording
+│   │           ├── tax-lot/     # FIFO lot allocation + cost basis
+│   │           ├── pnl/         # Unrealized + realized P&L
+│   │           ├── market-data/ # Kafka consumer + WebSocket gateway
+│   │           └── csv-export/  # CSV generation endpoints
+│   └── web/                 # Next.js 14 frontend (port 3000)
+│       └── src/
+│           ├── app/dashboard/   # Route pages
+│           ├── components/      # UI components per feature
+│           ├── hooks/           # SWR data hooks
+│           └── lib/             # API client + formatting utilities
+├── packages/
+│   └── shared/              # Shared TypeScript types (Portfolio, Trade, TaxLot…)
+└── scripts/
+    └── dev.sh               # Full startup script (used by yarn dev:start)
 ```
 
 ---
@@ -60,41 +86,25 @@ yarn dev
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://...` | PostgreSQL connection string |
-| `REDIS_URL` | `redis://localhost:6379` | Redis connection URL |
-| `KAFKA_BROKERS` | `localhost:9092` | Kafka broker address(es) |
-| `KAFKA_TOPIC_PRICE_UPDATES` | `findash.price-updates` | Kafka topic for price events |
-| `JWT_SECRET` | — | **Required** in production |
-| `JWT_EXPIRES_IN` | `7d` | JWT token lifetime |
+| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/findash` | PostgreSQL connection |
+| `REDIS_URL` | `redis://localhost:6379` | Redis connection |
+| `KAFKA_BROKERS` | `localhost:9092` | Kafka broker(s) |
+| `JWT_SECRET` | `change-me` | JWT signing secret (change in production) |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:3001` | API base URL for frontend |
-| `NEXT_PUBLIC_WS_URL` | `http://localhost:3001` | WebSocket URL for market data |
 
 ---
 
-## Project Structure
+## Yarn Scripts
 
-```
-findash/
-├── apps/
-│   ├── api/          # NestJS backend (port 3001)
-│   │   ├── prisma/   # Database schema + migrations
-│   │   └── src/
-│   │       ├── common/          # PrismaService, RedisService, JWT auth
-│   │       └── modules/
-│   │           ├── portfolio/   # Portfolio CRUD + trade recording
-│   │           ├── tax-lot/     # FIFO lot allocation + cost basis
-│   │           ├── pnl/         # Unrealized + realized P&L
-│   │           ├── market-data/ # Kafka consumer + WebSocket gateway
-│   │           └── csv-export/  # CSV generation endpoints
-│   └── web/          # Next.js 14 frontend (port 3000)
-│       └── src/
-│           ├── app/dashboard/   # Route pages (overview, positions, tax-lots, trades, export)
-│           ├── components/      # UI components per feature
-│           ├── hooks/           # SWR data hooks
-│           └── lib/             # API client + formatting utilities
-└── packages/
-    └── shared/       # Shared TypeScript types (Portfolio, Trade, TaxLot, etc.)
-```
+| Script | Description |
+|--------|-------------|
+| `yarn dev:start` | Full startup (Docker → migrate → seed → API + Web) |
+| `yarn dev` | Start API + Web in parallel (assumes Docker is running) |
+| `yarn shared:build` | Compile shared TypeScript types |
+| `yarn db:seed` | Load sample portfolio data |
+| `yarn db:migrate` | Run Prisma migrations (interactive) |
+| `yarn docker:up` | Start Docker services |
+| `yarn docker:down` | Stop Docker services |
 
 ---
 
@@ -116,8 +126,11 @@ Key endpoints:
 - `GET /portfolios` — list portfolios
 - `POST /portfolios/:id/trades` — record a trade (requires `Idempotency-Key` header)
 - `GET /portfolios/:id/pnl/unrealized` — live P&L
-- `GET /portfolios/:id/export/trades` — download CSV
+- `GET /portfolios/:id/export/trades` — download trades as CSV
 - WebSocket `/market` — subscribe to `price:update` events
+
+> **Note**: Authentication is disabled in development mode. All endpoints are open.
+> JWT auth can be re-enabled by adding `@UseGuards(JwtAuthGuard)` back to controllers.
 
 ---
 
@@ -125,15 +138,23 @@ Key endpoints:
 
 ### FIFO Tax-Lot Accounting
 
-Every BUY trade opens a new tax lot. Every SELL trade consumes the oldest open lots first (First In, First Out). The `tax_lots` table is append-only — closed lots are stamped with `closedAt` and `holdingPeriod` but never deleted.
+Every BUY trade opens a new tax lot. Every SELL trade consumes the oldest open lots first (FIFO). The `tax_lots` table is append-only — closed lots are stamped with `closedAt` and `holdingPeriod` but never deleted.
 
 ### Financial Data Integrity
 
-- All monetary amounts are stored as **integers in cents** — no floating-point arithmetic
+- All monetary amounts stored as **integers in cents** — no floating-point arithmetic
 - All mutations run inside **PostgreSQL transactions**
 - Every mutating API call requires an **Idempotency-Key** header
 - Trades are recorded in an **append-only** `trades` table
 
 ### Real-Time Prices
 
-Market data flows: `External feed → Kafka → MarketDataService → Redis cache (5s TTL) → WebSocket → Browser`. If Redis misses, the system falls back to the latest `price_snapshots` DB row.
+Market data flows: `External feed → Kafka → MarketDataService → Redis cache (5s TTL) → WebSocket → Browser`
+
+If Redis misses, the system falls back to the latest `price_snapshots` DB row.
+
+### Monorepo TypeScript Setup
+
+The shared package must be compiled before the API starts (`yarn shared:build`).
+The API's `tsconfig.json` points to `packages/shared/dist/index.d.ts` for types,
+and yarn workspace resolution handles runtime imports via `packages/shared/dist/index.js`.

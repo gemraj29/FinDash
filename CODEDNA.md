@@ -8,16 +8,16 @@
 |-------|-------|
 | Project | FinDash |
 | Archetype | `fintech` |
-| Frontend | Next.js 14 + TypeScript + Tailwind CSS |
-| Backend | NestJS + TypeScript |
-| Database | PostgreSQL via Prisma (amounts in cents) |
-| Cache | Redis (price quotes, 5s TTL) |
-| Message Queue | Kafka (price feed events) |
-| Auth | JWT + Bearer token |
+| Frontend | Next.js 14 + TypeScript + Tailwind CSS v4 |
+| Backend | NestJS 10 + TypeScript |
+| Database | PostgreSQL 16 via Prisma (amounts in cents) |
+| Cache | Redis 7 (price quotes, 5s TTL) |
+| Message Queue | Kafka (price feed events, graceful degradation if unavailable) |
+| Auth | JWT ready (disabled in dev — enable per-controller with `@UseGuards(JwtAuthGuard)`) |
 | Testing | Jest + NestJS Testing |
 | UI Style | `dashboard` — dark zinc, metric cards, data-dense tables |
 | Tax Method | FIFO |
-| Tasks | 19 total · 19 completed |
+| Tasks | 19 original · 19 completed · 3 post-launch fixes |
 
 ## Financial DNA Rules
 
@@ -30,10 +30,12 @@
 
 ## Quick Start
 
+**Double-click `FinDash.command`** — handles Docker, migrations, seed, and browser launch automatically.
+
+Or from terminal:
 ```bash
-yarn docker:up    # start PostgreSQL + Redis + Kafka
-yarn db:migrate   # run Prisma migrations
-yarn dev          # start API (3001) + Web (3000)
+yarn dev:start   # full startup sequence
+yarn db:seed     # load sample data (first run)
 ```
 
 ## Completed Tasks
@@ -43,11 +45,11 @@ yarn dev          # start API (3001) + Web (3000)
 | T00 | scaffold | shared_models — all DTOs, enums, domain types |
 | T01 | scaffold | monorepo, Docker, CI, .env, .gitignore |
 | T02 | implement | Prisma schema — portfolios, positions, tax_lots, trades, ledger_entries |
-| T03 | implement | NestJS bootstrap, JWT auth, Prisma/Redis services, idempotency middleware |
+| T03 | implement | NestJS bootstrap, JWT auth (guard ready), Prisma/Redis services, idempotency middleware |
 | T04 | implement | TaxLotService — FIFO allocateLot(), computeCostBasis() |
 | T05 | implement | PnlService — calculateUnrealizedPnl(), calculateRealizedPnl() |
 | T06 | implement | PortfolioService — findAll(), addTrade(), getPositions(), getTradeHistory() |
-| T07 | implement | MarketDataService — Kafka consumer, WebSocket gateway, Redis caching |
+| T07 | implement | MarketDataService — Kafka consumer (graceful), WebSocket gateway, Redis caching |
 | T08 | implement | CsvExportService — exportTrades(), exportTaxLots() |
 | T09 | document | API contract — all REST endpoints + WebSocket events |
 | T10 | implement | DashboardShell — sidebar nav, portfolio selector |
@@ -59,3 +61,20 @@ yarn dev          # start API (3001) + Web (3000)
 | T16 | test | TaxLotService — FIFO scenarios, insufficient shares, cost basis |
 | T17 | test | PnlService — unrealized P&L, realized P&L, cache hit/miss |
 | T18 | document | README + architecture notes |
+
+## Post-Launch Fixes
+
+| Fix | Description |
+|-----|-------------|
+| Tailwind v4 | Migrated postcss config to `@tailwindcss/postcss`, CSS to `@import "tailwindcss"` + `@theme {}` |
+| Auth guards | Removed `@UseGuards(JwtAuthGuard)` from all controllers for dev (no login flow yet) |
+| Build pipeline | Fixed NestJS `dist/` compilation — removed `incremental`, added clean step, fixed shared package resolution via `packages/shared/dist/` |
+| Shared package | Built `packages/shared` to `dist/` so API tsconfig uses compiled declarations instead of `.ts` source |
+| One-click launcher | Created `FinDash.command` — double-clickable Mac launcher with auto Docker start + browser open |
+| Seed data | Added `prisma/seed.ts` with 2 portfolios, 7 positions, 10 trades, price snapshots |
+
+## Known Limitations / Next Steps
+
+- No user authentication/login flow (JWT infrastructure is in place, guards commented out)
+- Kafka market data requires an external price feed producer; app gracefully degrades without it
+- Real-time prices shown from `price_snapshots` DB table (populated by seed); live feed requires Kafka

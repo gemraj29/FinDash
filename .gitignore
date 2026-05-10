@@ -12,6 +12,18 @@ dist/
 build/
 out/
 
+# Shared package compiled output (built by yarn shared:build)
+packages/shared/dist/
+
+# Accidental compiled files in src/ (should be in dist/)
+packages/shared/src/*.js
+packages/shared/src/*.js.map
+packages/shared/src/*.d.ts
+packages/shared/src/*.d.ts.map
+
+# One-click launcher seed flag
+.findash_seeded
+
 # Environment
 .env
 .env.local
