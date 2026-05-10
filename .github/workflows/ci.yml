@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: findash
+          POSTGRES_PASSWORD: findash_secret
+          POSTGRES_DB: findash_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build shared package
+        run: yarn workspace @findash/shared build
+
+      - name: Generate Prisma client
+        run: yarn workspace @findash/api prisma:generate
+        env:
+          DATABASE_URL: postgresql://findash:findash_secret@localhost:5432/findash_test
+
+      - name: Run Prisma migrations
+        run: yarn workspace @findash/api prisma:migrate:deploy
+        env:
+          DATABASE_URL: postgresql://findash:findash_secret@localhost:5432/findash_test
+
+      - name: Lint API
+        run: yarn workspace @findash/api lint
+
+      - name: Lint Web
+        run: yarn workspace @findash/web lint
+
+      - name: Test API
+        run: yarn workspace @findash/api test --coverage --forceExit
+        env:
+          DATABASE_URL: postgresql://findash:findash_secret@localhost:5432/findash_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci-test-secret
+          NODE_ENV: test
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: apps/api/coverage/

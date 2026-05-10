@@ -1,0 +1,170 @@
+// FinDash Prisma Schema
+// DNA: fintech · All monetary amounts stored as Int (cents) · Append-only trades
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum TradeDirection {
+  BUY
+  SELL
+}
+
+enum AssetClass {
+  EQUITY
+  ETF
+  OPTION
+  CRYPTO
+  FIXED_INCOME
+}
+
+enum TaxMethod {
+  FIFO
+}
+
+enum HoldingPeriod {
+  SHORT_TERM
+  LONG_TERM
+}
+
+// ─── Portfolio ────────────────────────────────────────────────────────────────
+
+model Portfolio {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  /// ISO 4217 currency code
+  currency    String    @default("USD")
+  taxMethod   TaxMethod @default(FIFO)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  positions    Position[]
+  trades       Trade[]
+  taxLots      TaxLot[]
+  ledgerEntries LedgerEntry[]
+
+  @@map("portfolios")
+}
+
+// ─── Position ─────────────────────────────────────────────────────────────────
+
+model Position {
+  id          String     @id @default(uuid())
+  portfolioId String
+  symbol      String
+  assetClass  AssetClass @default(EQUITY)
+  /// Total shares currently held (stored as Decimal for fractional shares)
+  sharesHeld  Decimal    @db.Decimal(18, 8)
+  /// Weighted average cost basis in cents
+  avgCostBasisCents Int  @default(0)
+  openedAt    DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  taxLots   TaxLot[]
+
+  @@unique([portfolioId, symbol])
+  @@index([portfolioId])
+  @@index([symbol])
+  @@map("positions")
+}
+
+// ─── TaxLot (FIFO) ───────────────────────────────────────────────────────────
+
+/// Append-only FIFO tax lots. Shares decrement on SELL; closed lots are never deleted.
+model TaxLot {
+  id          String   @id @default(uuid())
+  positionId  String
+  portfolioId String
+  symbol      String
+  /// Shares acquired when this lot was opened
+  sharesAcquired  Decimal @db.Decimal(18, 8)
+  /// Shares still open (decrements on SELL, FIFO order)
+  sharesRemaining Decimal @db.Decimal(18, 8)
+  /// Cost per share in cents at acquisition
+  costBasisPerShareCents Int
+  acquiredAt  DateTime @default(now())
+  closedAt    DateTime?
+  holdingPeriod HoldingPeriod?
+
+  position  Position  @relation(fields: [positionId], references: [id])
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([positionId, acquiredAt])   // FIFO ordering
+  @@index([portfolioId])
+  @@index([symbol])
+  @@map("tax_lots")
+}
+
+// ─── Trade (Append-Only Event Log) ────────────────────────────────────────────
+
+/// Immutable trade log — records are NEVER updated or deleted.
+/// Idempotency key prevents double-submission.
+model Trade {
+  id          String         @id @default(uuid())
+  portfolioId String
+  positionId  String
+  symbol      String
+  direction   TradeDirection
+  /// Number of shares traded (Decimal for fractional)
+  shares      Decimal        @db.Decimal(18, 8)
+  /// Execution price per share in cents
+  pricePerShareCents   Int
+  /// Total commission/fees in cents
+  commissionCents      Int   @default(0)
+  /// Gross notional value in cents (shares × price, pre-commission)
+  notionalCents        Int
+  /// Prevents duplicate submissions
+  idempotencyKey       String @unique
+  executedAt  DateTime
+  createdAt   DateTime @default(now())
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId, executedAt])
+  @@index([symbol])
+  @@index([idempotencyKey])
+  @@map("trades")
+}
+
+// ─── Price Snapshots (market data cache backup) ───────────────────────────────
+
+model PriceSnapshot {
+  id            String   @id @default(uuid())
+  symbol        String
+  /// Last price in cents
+  priceCents    Int
+  /// Previous close in cents
+  prevCloseCents Int
+  capturedAt    DateTime @default(now())
+
+  @@index([symbol, capturedAt])
+  @@map("price_snapshots")
+}
+
+// ─── Ledger Entries (double-entry — every debit has a credit) ─────────────────
+
+model LedgerEntry {
+  id          String   @id @default(uuid())
+  portfolioId String
+  /// e.g. "TRADE", "COMMISSION", "DIVIDEND"
+  entryType   String
+  /// Positive = credit, negative = debit (in cents)
+  amountCents Int
+  description String
+  referenceId String?  // tradeId or other source
+  createdAt   DateTime @default(now())
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId, createdAt])
+  @@map("ledger_entries")
+}

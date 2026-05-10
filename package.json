@@ -1,0 +1,29 @@
+{
+  "name": "findash-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FinDash — Real-time portfolio tracker with P&L, FIFO tax-lot accounting, and CSV export",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn workspace @findash/api dev\" \"yarn workspace @findash/web dev\"",
+    "build": "yarn workspace @findash/shared build && yarn workspace @findash/api build && yarn workspace @findash/web build",
+    "test": "yarn workspaces run test",
+    "lint": "yarn workspaces run lint",
+    "db:generate": "yarn workspace @findash/api prisma:generate",
+    "db:migrate": "yarn workspace @findash/api prisma:migrate",
+    "db:studio": "yarn workspace @findash/api prisma:studio",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0"
+  }
+}

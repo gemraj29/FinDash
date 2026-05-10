@@ -1,0 +1,14 @@
+{
+  "name": "@findash/shared",
+  "version": "0.1.0",
+  "description": "FinDash shared domain types and DTOs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* FinDash Dashboard UI — dark zinc theme */
+:root {
+  --color-gain: #4ade80;   /* green-400 */
+  --color-loss: #f87171;   /* red-400 */
+  --color-neutral: #a1a1aa; /* zinc-400 */
+}
+
+/* Monospace numbers for financial data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Subtle table row hover */
+tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.025);
+}
+
+/* Scrollbar styling — dark theme */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgb(24 24 27); }
+::-webkit-scrollbar-thumb { background: rgb(63 63 70); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(82 82 91); }
