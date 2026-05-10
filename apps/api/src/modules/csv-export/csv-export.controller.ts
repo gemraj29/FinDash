@@ -1,10 +1,8 @@
-import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
-import { JwtAuthGuard } from '../../common/auth/jwt-auth.guard';
 import { CsvExportService } from './csv-export.service';
 import { TradeFilter, TradeDirection } from '@findash/shared';
 
-@UseGuards(JwtAuthGuard)
 @Controller('portfolios')
 export class CsvExportController {
   constructor(private readonly csvExportService: CsvExportService) {}

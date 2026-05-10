@@ -1,9 +1,7 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/auth/jwt-auth.guard';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { PnlService } from './pnl.service';
 import { PnLSummary, DateRange } from '@findash/shared';
 
-@UseGuards(JwtAuthGuard)
 @Controller('portfolios')
 export class PnlController {
   constructor(private readonly pnlService: PnlService) {}

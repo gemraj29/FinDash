@@ -5,11 +5,9 @@ import {
   Param,
   Body,
   Query,
-  UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/auth/jwt-auth.guard';
 import { PortfolioService } from './portfolio.service';
 import {
   Portfolio,
@@ -21,7 +19,6 @@ import {
   TradeDirection,
 } from '@findash/shared';
 
-@UseGuards(JwtAuthGuard)
 @Controller('portfolios')
 export class PortfolioController {
   constructor(private readonly portfolioService: PortfolioService) {}

@@ -1,9 +1,7 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/auth/jwt-auth.guard';
+import { Controller, Get, Param } from '@nestjs/common';
 import { TaxLotService } from './tax-lot.service';
 import { CostBasis } from '@findash/shared';
 
-@UseGuards(JwtAuthGuard)
 @Controller('positions')
 export class TaxLotController {
   constructor(private readonly taxLotService: TaxLotService) {}
