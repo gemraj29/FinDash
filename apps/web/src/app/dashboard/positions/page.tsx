@@ -1,3 +1,4 @@
+'use client';
 import { DashboardShell } from '../../../components/layout/dashboard-shell';
 import { PositionsTable } from '../../../components/positions/positions-table';
 

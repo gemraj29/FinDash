@@ -1,3 +1,4 @@
+'use client';
 import { DashboardShell } from '../../../components/layout/dashboard-shell';
 import { TradeHistoryView } from '../../../components/trade-history/trade-history-view';
 

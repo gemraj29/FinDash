@@ -8,12 +8,14 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "concurrently \"yarn workspace @findash/api dev\" \"yarn workspace @findash/web dev\"",
+    "dev:start": "bash scripts/dev.sh",
+    "dev": "concurrently --names \"API,WEB\" --prefix-colors \"cyan,magenta\" \"yarn workspace @findash/api dev\" \"yarn workspace @findash/web dev\"",
     "build": "yarn workspace @findash/shared build && yarn workspace @findash/api build && yarn workspace @findash/web build",
     "test": "yarn workspaces run test",
     "lint": "yarn workspaces run lint",
     "db:generate": "yarn workspace @findash/api prisma:generate",
     "db:migrate": "yarn workspace @findash/api prisma:migrate",
+    "db:migrate:deploy": "cd apps/api && npx prisma migrate deploy",
     "db:studio": "yarn workspace @findash/api prisma:studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"

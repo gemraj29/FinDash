@@ -18,7 +18,7 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@findash/shared": ["../../packages/shared/src"]
+      "@findash/shared": ["../../packages/shared/src/index.ts"]
     }
   }
 }

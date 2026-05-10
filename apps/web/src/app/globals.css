@@ -1,26 +1,46 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind CSS v4 — single import replaces @tailwind base/components/utilities */
+@import "tailwindcss";
 
-/* FinDash Dashboard UI — dark zinc theme */
-:root {
+/* FinDash custom design tokens — registered in Tailwind's theme */
+@theme {
+  /* Brand colors */
+  --color-brand: #22c55e;
+  --color-brand-dim: #16a34a;
+  --color-loss: #ef4444;
+  --color-loss-dim: #dc2626;
+
+  /* Surface palette (zinc dark) */
+  --color-surface: rgb(24 24 27);       /* zinc-900 */
+  --color-surface-raised: rgb(39 39 42); /* zinc-800 */
+  --color-surface-border: rgb(63 63 70); /* zinc-700 */
+
+  /* FinDash semantic aliases (also available as CSS vars below) */
   --color-gain: #4ade80;   /* green-400 */
-  --color-loss: #f87171;   /* red-400 */
   --color-neutral: #a1a1aa; /* zinc-400 */
+
+  /* Mono font stack */
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
 
-/* Monospace numbers for financial data */
+/* ─── CSS variable aliases (usable outside Tailwind classes) ────────────── */
+:root {
+  --color-gain: #4ade80;
+  --color-loss: #f87171;
+  --color-neutral: #a1a1aa;
+}
+
+/* ─── Monospace numbers for financial data ──────────────────────────────── */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* Subtle table row hover */
+/* ─── Subtle table row hover ────────────────────────────────────────────── */
 tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.025);
 }
 
-/* Scrollbar styling — dark theme */
+/* ─── Scrollbar styling — dark theme ───────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: rgb(24 24 27); }
 ::-webkit-scrollbar-thumb { background: rgb(63 63 70); border-radius: 3px; }

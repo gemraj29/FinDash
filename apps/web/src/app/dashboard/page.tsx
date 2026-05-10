@@ -1,3 +1,4 @@
+'use client';
 import { DashboardShell } from '../../components/layout/dashboard-shell';
 import { PortfolioSummary } from '../../components/portfolio/portfolio-summary';
 
