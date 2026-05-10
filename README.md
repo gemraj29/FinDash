@@ -118,6 +118,16 @@ yarn test --coverage   # with coverage report
 
 ---
 
+## Documentation
+
+| Doc | Contents |
+|-----|----------|
+| [API_CONTRACT.md](./API_CONTRACT.md) | All REST endpoints, WebSocket events, service signatures |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | System architecture diagrams, module graph, request lifecycle |
+| [docs/DATA_MODEL.md](./docs/DATA_MODEL.md) | Entity relationship diagram, schema decisions, indexes |
+| [docs/FLOWS.md](./docs/FLOWS.md) | FIFO logic flowchart, P&L calculation, trade recording sequence |
+| [docs/USAGE.md](./docs/USAGE.md) | Page-by-page usage guide, trade API examples, troubleshooting |
+
 ## API Reference
 
 See [API_CONTRACT.md](./API_CONTRACT.md) for full endpoint documentation.
