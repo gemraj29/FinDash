@@ -16,6 +16,7 @@
     "db:generate": "yarn workspace @findash/api prisma:generate",
     "db:migrate": "yarn workspace @findash/api prisma:migrate",
     "db:migrate:deploy": "cd apps/api && npx prisma migrate deploy",
+    "db:seed": "yarn workspace @findash/api prisma:seed",
     "db:studio": "yarn workspace @findash/api prisma:studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"

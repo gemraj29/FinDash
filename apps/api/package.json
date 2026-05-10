@@ -13,6 +13,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
@@ -39,8 +40,12 @@
     "rxjs": "^7.8.1",
     "uuid": "^9.0.1"
   },
+  "prisma": {
+    "seed": "ts-node --skip-project --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
+  },
   "devDependencies": {
     "@nestjs/cli": "^10.3.0",
+    "ts-node": "^10.9.2",
     "@nestjs/testing": "^10.3.0",
     "@types/jest": "^29.5.11",
     "@types/node": "^20.11.5",
