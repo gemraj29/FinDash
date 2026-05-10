@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "dev:start": "bash scripts/dev.sh",
+    "shared:build": "yarn workspace @findash/shared build",
     "dev": "concurrently --names \"API,WEB\" --prefix-colors \"cyan,magenta\" \"yarn workspace @findash/api dev\" \"yarn workspace @findash/web dev\"",
     "build": "yarn workspace @findash/shared build && yarn workspace @findash/api build && yarn workspace @findash/web build",
     "test": "yarn workspaces run test",

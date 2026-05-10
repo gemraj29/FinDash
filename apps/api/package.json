@@ -4,7 +4,7 @@
   "description": "FinDash NestJS API — fintech backend with FIFO tax-lot accounting",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "nest start --watch",
+    "dev": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});require('fs').rmSync('tsconfig.build.tsbuildinfo',{force:true})\" && nest start --watch --preserveWatchOutput",
     "build": "nest build",
     "start": "node dist/main",
     "test": "jest --runInBand",

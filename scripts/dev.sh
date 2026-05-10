@@ -35,19 +35,24 @@ for i in $(seq 1 20); do
   sleep 2
 done
 
-# ─── 4. copy .env into api workspace if missing ────────────────────────────
+# ─── 4. build shared package (required before API compilation) ────────────
+step "Building @findash/shared…"
+yarn workspace @findash/shared build
+ok "Shared package built → packages/shared/dist/"
+
+# ─── 5. copy .env into api workspace if missing ────────────────────────────
 if [ ! -f "apps/api/.env" ] && [ -f ".env" ]; then
   step "Copying root .env → apps/api/.env"
   cp .env apps/api/.env
   ok ".env copied"
 fi
 
-# ─── 5. prisma generate ────────────────────────────────────────────────────
+# ─── 6. prisma generate ────────────────────────────────────────────────────
 step "Generating Prisma client…"
 yarn db:generate
 ok "Prisma client generated"
 
-# ─── 6. prisma migrate ─────────────────────────────────────────────────────
+# ─── 7. prisma migrate ─────────────────────────────────────────────────────
 step "Running database migrations…"
 # Use 'migrate deploy' so it never prompts for a migration name
 (cd apps/api && npx prisma migrate deploy) || {
@@ -56,7 +61,7 @@ step "Running database migrations…"
 }
 ok "Database migrations applied"
 
-# ─── 7. start api + web in parallel ───────────────────────────────────────
+# ─── 8. start api + web in parallel ───────────────────────────────────────
 step "Starting API (port 3001) and Web (port 3000)…"
 echo ""
 echo -e "  ${GREEN}→ Dashboard:${RESET} http://localhost:3000"
